@@ -30,11 +30,13 @@ const projectRoutes = require('./routes/project');
 const activityRoutes = require('./routes/activity');
 const screenshot = require('./routes/Screenshot');
 
+
 // Routes middleware
 app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
 app.use('/activity', activityRoutes);
-app.use('/screeshot', screenshot);
+app.use('/screenshot', screenshot);
+
 
 process.on('unhandledRejection', (reason, promise) => {
     console.log('Unhandled Rejection at:', promise, 'reason:', reason);

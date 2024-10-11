@@ -20,4 +20,14 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Get all activity logs
+router.get('/', async (req, res) => {
+  try {
+    const activityLogs = await ActivityLog.find();
+    res.json(activityLogs);
+  } catch (err) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 module.exports = router;

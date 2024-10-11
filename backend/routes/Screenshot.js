@@ -13,29 +13,26 @@ const upload = multer({
 router.post('/', upload.single('image'), async (req, res) => {
     try {
         const screenshot = new Screenshot({
-            projectId: req.body.projectId,
-            userId: req.body.userId,
-            image: req.file.buffer // Save image as buffer
+            image: req.file.buffer, // Save image as buffer
         });
 
         await screenshot.save();
-        res.status(201).send(screenshot);
+        res.status(201).send({ message: 'Screenshot saved successfully', id: screenshot._id });
     } catch (err) {
         res.status(400).send({ error: err.message });
     }
 });
 
-// Route to fetch all screenshots (or by project/user)
+// Route to fetch all screenshots
 router.get('/', async (req, res) => {
-    const { projectId, userId } = req.query;
-
-    let query = {};
-    if (projectId) query.projectId = projectId;
-    if (userId) query.userId = userId;
-
     try {
-        const screenshots = await Screenshot.find(query).populate('projectId userId');
-        res.status(200).send(screenshots);
+        const screenshots = await Screenshot.find();
+        const formattedScreenshots = screenshots.map((screenshot) => ({
+            id: screenshot._id,
+            createdAt: screenshot.createdAt,
+            image: screenshot.image.toString('base64'),
+        }));
+        res.status(200).send(formattedScreenshots);
     } catch (err) {
         res.status(500).send({ error: err.message });
     }
@@ -44,9 +41,9 @@ router.get('/', async (req, res) => {
 // Route to fetch a screenshot by ID
 router.get('/:id', async (req, res) => {
     try {
-        const screenshot = await Screenshot.findById(req.params.id).populate('projectId userId');
+        const screenshot = await Screenshot.findById(req.params.id);
         if (!screenshot) return res.status(404).send({ error: 'Screenshot not found' });
-
+        res.set('Content-Type', 'image/png');
         res.status(200).send(screenshot);
     } catch (err) {
         res.status(500).send({ error: err.message });
@@ -65,4 +62,15 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+router.get('/png/:id', async (req, res) => {
+    try {
+        const screenshot = await Screenshot.findById(req.params.id);
+        if (!screenshot) return res.status(404).send({ error: 'Screenshot not found' });
+
+        res.set('Content-Type', 'image/png');
+        res.send(screenshot.image);
+    } catch (err) {
+        res.status(500).send({ error: err.message });
+    }
+});
 module.exports = router;
